@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "warchest"
+version = "0.1.0"
+description = "boardgame war chest simulator and GUI"
+authors = [
+    { name = "lihan", email = "harrylinlh@outlook.com"}
+]
+requires-python = ">=3.12"
+dependencies = [
+]
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest"
+]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest"

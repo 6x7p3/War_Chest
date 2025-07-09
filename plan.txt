@@ -1,0 +1,33 @@
+warchest/
+├─ README.md
+├─ pyproject.toml          # [project] name = "warchest", deps: pygame, typer, rich
+├─ .pre-commit-config.yaml # Black, Ruff, mypy
+├─ tests/
+│  ├─ core/
+│  └─ gui/
+└─ src/
+   └─ warchest/
+      ├─ __init__.py       # re-export GameState, VERSION
+      │
+      ├─ core/             # ---------- pure game logic ----------
+      │  ├─ __init__.py
+      │  ├─ enums.py       # Player, TokenType, Phase
+      │  ├─ token.py       # @dataclass(frozen=True)
+      │  ├─ board.py       # axial/cube coord helpers
+      │  ├─ bag.py
+      │  ├─ move.py
+      │  ├─ game_state.py  # legal_moves(), apply_move()
+      │  └─ exceptions.py
+      │
+      ├─ gui/              # ---------- visual layer ------------
+      │  ├─ __init__.py
+      │  ├─ assets/        # PNGs, fonts; loaded via importlib.resources
+      │  ├─ constants.py   # window size, colours
+      │  ├─ hex_renderer.py# converts hex coords→pixels, blits tokens
+      │  └─ app.py         # mainloop, event->Move mapping
+      │
+      ├─ utils/            # small generic helpers
+      │  └─ logging.py
+      │
+      └─ data/
+         └─ tokens.json    # static token stats
