@@ -1,0 +1,57 @@
+# .pre-commit-config.yaml  –  run “pre-commit install” once
+#
+# Hook order:
+#   1. Safety checks (merge-conflicts, large files, byte-order-marks …)
+#   2. Code style & import hygiene (ruff --fix, black)
+#   3. Static typing (mypy – skips if only *.md changed)
+#
+# Update “rev:” pins periodically:   pre-commit autoupdate
+
+repos:
+  # ── 0. Basic hygiene hooks ────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-added-large-files      # >500 kB warns
+      - id: check-byte-order-marker
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  # ── 1. Ruff – lint + autofix (PEP8, flake, isort, etc.) ───────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: ["--fix"]     # auto-apply safe fixes
+        # Ruff honours ruff.toml / pyproject.toml for full config
+        types: [python]
+
+  # ── 2. Black – final code formatter ───────────────────────────────────
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
+        args: ["--line-length", "100"]   # keep in sync with ruff/pyproject
+        types: [python]
+
+  # ── 3. Mypy – static type checking (runs after code is formatted) ─────
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        additional_dependencies: ["types-setuptools"]
+        # Hatch exposes the env → mypy sees installed deps
+        # Skip if commit touches no .py files
+        files: \.py$
+
+  # ── 4. Detect secrets (optional but recommended) ──────────────────────
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        exclude: |
+          (?x)^(
+            docs/|          # ignore rendered docs
+            .*\.md$         # ignore markdown code blocks
+          )

@@ -100,13 +100,13 @@ class Board:
         # control
         control: Optional[Mapping[Hex, Control]] = None,
     ) -> None:
-        # 1️⃣ choose layout
+        # 1 choose layout
         self._layout: FrozenSet[Hex] = layout or Board.DefaultLayout
 
-        # 2️⃣ map  Hex → Cell
+        # 2 map  Hex → Cell
         self._map: dict[Hex, Cell] = defaultdict(Cell)
 
-        # 3️⃣ load token stacks
+        # 3 load token stacks
         if initial:
             for hx, value in initial.items():
                 cell = self._map[hx]
@@ -119,12 +119,12 @@ class Board:
             for hx, token in pairs:
                 self._map[hx].stack.append(token)
 
-        # 4️⃣ load control info
+        # 4 load control info
         if control:
             for hx, ctrl in control.items():
                 self._map[hx].control = ctrl
 
-        # 5️⃣ validate
+        # 5 validate
         bad = [hx for hx in self._map if hx not in self._layout]
         if bad:
             raise ValueError(f"off-board coordinates: {bad}")
@@ -138,7 +138,7 @@ class Board:
 
     def remove_top(self, hx: Hex) -> "Token":
         self._ensure_in_bounds(hx)
-        cell = self._map[hx]
+        cell = self._map.get(hx)
         if not cell.stack:
             raise ValueError(f"No tokens at {hx}")
         top = cell.stack.pop()

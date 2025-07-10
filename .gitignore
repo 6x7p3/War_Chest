@@ -2,3 +2,4 @@
 __pycache__/                 # any directory named “__pycache__”
 *.py[cod]                    # .pyc, .pyo, .pyd
 *$py.class                   # Jython/IronPython old style
+.pytest_cache/               # Ignore pytest cache directory
