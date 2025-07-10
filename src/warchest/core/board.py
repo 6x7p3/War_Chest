@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, Mapping, Union, Sequence, Iterable, FrozenSet, ClassVar
 from collections import defaultdict
-from enum import Enum, auto
+from warchest.core.enums import Control
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,14 +58,8 @@ NeutralLocations: frozenset[Hex] = frozenset(
 
 
 # --------------------------------------------------------------------------- #
-# New enum + payload container
+# payload container
 # --------------------------------------------------------------------------- #
-class Control(Enum):
-    """Who controls a hex on the board."""
-
-    NEUTRAL = auto()
-    A = auto()
-    B = auto()
 
 
 @dataclass(slots=True)
