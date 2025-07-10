@@ -1,11 +1,13 @@
 from warchest.core.board import Hex, BoardHexes, Board, Cell, Control
 import pytest
 
+
 def test_hex_initialization():
     hex_tile = Hex(q=1, r=2)
     assert hex_tile.q == 1
     assert hex_tile.r == 2
     assert isinstance(hex_tile, Hex)
+
 
 def test_hex_immutability():
     hex_tile = Hex(q=1, r=2)
@@ -15,7 +17,7 @@ def test_hex_immutability():
         pass  # Expected behavior, as Hex is frozen
     else:
         assert False, "Hex should be immutable, but was modified."
-    
+
     try:
         hex_tile.r = 4  # Attempt to modify r
     except AttributeError:
@@ -23,11 +25,13 @@ def test_hex_immutability():
     else:
         assert False, "Hex should be immutable, but was modified."
 
+
 def test_hex_move():
     hex_tile = Hex(q=1, r=2)
     new_hex = hex_tile.move("south")
     assert new_hex.q == 0
     assert new_hex.r == 1
+
 
 def test_hex_distance():
     hex1 = Hex(q=0, r=0)
@@ -36,6 +40,7 @@ def test_hex_distance():
 
     hex3 = Hex(q=1, r=1)
     assert hex2.distance(hex3) == 2  # Distance should be 1 in axial coordinates
+
 
 def test_board_hexes_initialization():
     board_hexes = BoardHexes
@@ -49,8 +54,9 @@ def test_board_hexes_initialization():
     # Check if the center hex is included
     assert Hex(q=0, r=0) in board_hexes
 
-    #check out of bounds hexes
+    # check out of bounds hexes
     assert Hex(q=4, r=0) not in board_hexes
+
 
 def test_cell_initialization():
     cell = Cell(stack=["Token1", "Token2"], control="A")
@@ -58,9 +64,10 @@ def test_cell_initialization():
     assert cell.stack == ["Token1", "Token2"]
     assert cell.control == "A"
 
-#------------------------------------------------------------
+
+# ------------------------------------------------------------
 # test board initialization
-#------------------------------------------------------------
+# ------------------------------------------------------------
 def test_board_initialization():
     board = Board()
     assert isinstance(board, Board)
@@ -68,12 +75,14 @@ def test_board_initialization():
     assert isinstance(board._map, dict)
     assert len(board._map) == 0  # Initially, the map should be empty
 
+
 def test_board_initialization_with_layout():
     custom_layout = frozenset({Hex(q=0, r=0), Hex(q=1, r=1)})
     board = Board(layout=custom_layout)
     assert board._layout == custom_layout
     assert isinstance(board._map, dict)
     assert len(board._map) == 0  # Initially, the map should be empty
+
 
 def test_board_init_with_stack_and_control():
     hx = Hex(0, 0)
@@ -85,12 +94,14 @@ def test_board_init_with_stack_and_control():
     assert board.control_of(hx) is Control.A
     assert board._map[hx].stack == ["token1", "token2"]
 
+
 def test_board_init_with_pairs_duplicate_hex():
     hx = Hex(1, -1)
     pairs = [(hx, "tokenA"), (hx, "tokenB")]
 
     board = Board(pairs=pairs)
     assert board._map[hx].stack == ["tokenA", "tokenB"]
+
 
 def test_board_init_with_outbounds_hex():
     hx = Hex(5, 5)  # Out of bounds hex
@@ -101,6 +112,7 @@ def test_board_init_with_outbounds_hex():
     else:
         assert False, "Expected ValueError for out-of-bounds hex, but none was raised."
 
+
 def test_board_init_with_outbounds_control():
     hx = Hex(5, 5)  # Out of bounds hex
     try:
@@ -110,9 +122,10 @@ def test_board_init_with_outbounds_control():
     else:
         assert False, "Expected ValueError for out-of-bounds hex, but none was raised."
 
-#------------------------------------------------------------
+
+# ------------------------------------------------------------
 # test board place method
-#------------------------------------------------------------
+# ------------------------------------------------------------
 def test_board_place_and_remove():
     board = Board()
     hx = Hex(0, 0)
@@ -127,9 +140,10 @@ def test_board_place_and_remove():
     board.remove_top(hx)
     assert len(board._map[hx].stack) == 0
 
-#------------------------------------------------------------
+
+# ------------------------------------------------------------
 # test board control methods
-#------------------------------------------------------------
+# ------------------------------------------------------------
 def test_board_control():
     board = Board()
     hx = Hex(0, 0)
@@ -151,9 +165,10 @@ def test_board_control():
     with pytest.raises(ValueError):
         board.set_control(bad_hex, Control.A)
 
-#------------------------------------------------------------
+
+# ------------------------------------------------------------
 # test bound control methods
-#------------------------------------------------------------
+# ------------------------------------------------------------
 def test_bound_control():
     board = Board()
     bad_hex = Hex(5, 5)

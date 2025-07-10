@@ -13,10 +13,14 @@ requires-python = ">=3.12"
 dependencies = [
 ]
 
-[tool.hatch.envs.default]
+[tool.hatch.envs.dev]
 dependencies = [
-    "pytest"
+    "pytest",
+    "pre-commit",
+    "ruff",
+    "black",
+    "mypy"
 ]
 
-[tool.hatch.envs.default.scripts]
+[tool.hatch.envs.dev.scripts]
 test = "pytest"

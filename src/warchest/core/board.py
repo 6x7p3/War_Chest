@@ -3,45 +3,45 @@ from typing import Optional, Mapping, Union, Sequence, Iterable, FrozenSet, Clas
 from collections import defaultdict
 from enum import Enum, auto
 
+
 @dataclass(frozen=True, slots=True)
 class Hex:
     """A class representing a hexagonal tile on the board. In tilted axial coordinates (q, r)."""
-    q: int #southwest-northeast axis
-    r: int #northwest-southeast axis
+
+    q: int  # southwest-northeast axis
+    r: int  # northwest-southeast axis
     _directions = {
         "north": (1, 1),
         "northeast": (1, 0),
         "southeast": (0, -1),
         "south": (-1, -1),
         "southwest": (-1, 0),
-        "northwest": (0, 1)
+        "northwest": (0, 1),
     }
 
-    def move(self, direction: str) -> 'Hex':
+    def move(self, direction: str) -> "Hex":
         """Returns a new Hex object moved in the specified direction."""
         if direction not in self._directions:
             raise ValueError(f"Invalid direction: {direction}")
         dq, dr = self._directions[direction]
         return Hex(self.q + dq, self.r + dr)
-    
-    def distance(self, other: 'Hex') -> int:
+
+    def distance(self, other: "Hex") -> int:
         """Calculates the distance to another Hex object using the axial coordinate system."""
         dq = self.q - other.q
         dr = self.r - other.r
-        if dq*dr < 0:
+        if dq * dr < 0:
             return abs(dq) + abs(dr)
         return max(abs(dq), abs(dr))
 
-#----------------------------------------------------------------------
+
+# ----------------------------------------------------------------------
 # A set of all hexes on the board, representing the playable area.
 # The board is a hexagonal grid with a radius of 3 hexes from the center
 # 2 starting points each for both players, 6 neutral locations
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 BoardHexes: frozenset[Hex] = frozenset(
-    Hex(q, r)
-    for q in range(-3, 4)
-    for r in range(-3, 4)
-    if Hex.distance(Hex(q, r), Hex(0, 0)) <= 3
+    Hex(q, r) for q in range(-3, 4) for r in range(-3, 4) if Hex.distance(Hex(q, r), Hex(0, 0)) <= 3
 )
 AStartingLocations: frozenset[Hex] = frozenset([Hex(2, 4), Hex(3, 1)])
 BStartingLocations: frozenset[Hex] = frozenset([Hex(-2, -4), Hex(-3, -1)])
@@ -56,18 +56,22 @@ NeutralLocations: frozenset[Hex] = frozenset(
     ]
 )
 
+
 # --------------------------------------------------------------------------- #
 # New enum + payload container
 # --------------------------------------------------------------------------- #
 class Control(Enum):
     """Who controls a hex on the board."""
+
     NEUTRAL = auto()
     A = auto()
     B = auto()
 
+
 @dataclass(slots=True)
 class Cell:
     """Payload stored in Board._map: token stack + control flag."""
+
     stack: list["Token"] = field(default_factory=list)
     control: Control = Control.NEUTRAL
 
@@ -81,11 +85,13 @@ class Cell:
     def copy(self) -> "Cell":
         return Cell(stack=self.stack.copy(), control=self.control)
 
+
 # --------------------------------------------------------------------------- #
 # Board
 # --------------------------------------------------------------------------- #
 class Board:
     """Keeps board geometry **and** per-hex contents/status."""
+
     __slots__ = ("_layout", "_map")
 
     DefaultLayout: ClassVar[FrozenSet[Hex]] = BoardHexes
