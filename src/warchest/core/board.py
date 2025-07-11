@@ -2,38 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Mapping, Union, Sequence, Iterable, FrozenSet, ClassVar
 from collections import defaultdict
 from warchest.core.enums import Control
-
-
-@dataclass(frozen=True, slots=True)
-class Hex:
-    """A class representing a hexagonal tile on the board. In tilted axial coordinates (q, r)."""
-
-    q: int  # southwest-northeast axis
-    r: int  # northwest-southeast axis
-    _directions = {
-        "north": (1, 1),
-        "northeast": (1, 0),
-        "southeast": (0, -1),
-        "south": (-1, -1),
-        "southwest": (-1, 0),
-        "northwest": (0, 1),
-    }
-
-    def move(self, direction: str) -> "Hex":
-        """Returns a new Hex object moved in the specified direction."""
-        if direction not in self._directions:
-            raise ValueError(f"Invalid direction: {direction}")
-        dq, dr = self._directions[direction]
-        return Hex(self.q + dq, self.r + dr)
-
-    def distance(self, other: "Hex") -> int:
-        """Calculates the distance to another Hex object using the axial coordinate system."""
-        dq = self.q - other.q
-        dr = self.r - other.r
-        if dq * dr < 0:
-            return abs(dq) + abs(dr)
-        return max(abs(dq), abs(dr))
-
+from warchest.core.hex import Hex
 
 # ----------------------------------------------------------------------
 # A set of all hexes on the board, representing the playable area.
@@ -138,7 +107,7 @@ class Board:
 
     def remove_top(self, hx: Hex) -> "Token":
         self._ensure_in_bounds(hx)
-        cell = self._map.get(hx)
+        cell = self._map.get(hx, Cell())
         if not cell.stack:
             raise ValueError(f"No tokens at {hx}")
         top = cell.stack.pop()
