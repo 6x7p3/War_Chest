@@ -3,6 +3,7 @@ from typing import Optional, Mapping, Union, Sequence, Iterable, FrozenSet, Clas
 from collections import defaultdict
 from warchest.core.enums import Control
 from warchest.core.hex import Hex
+from warchest.core.tokens import Token
 
 # ----------------------------------------------------------------------
 # A set of all hexes on the board, representing the playable area.
