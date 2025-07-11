@@ -8,7 +8,7 @@ class Hex:
 
     q: int  # southwest-northeast axis
     r: int  # northwest-southeast axis
-    _directions = {
+    _DIRECTIONS = {
         "north": (1, 1),
         "northeast": (1, 0),
         "southeast": (0, -1),
@@ -19,9 +19,9 @@ class Hex:
 
     def neighbours(self, direction: str) -> "Hex":
         """Returns a new Hex object moved in the specified direction."""
-        if direction not in self._directions:
+        if direction not in self._DIRECTIONS:
             raise ValueError(f"Invalid direction: {direction}")
-        dq, dr = self._directions[direction]
+        dq, dr = self._DIRECTIONS[direction]
         return Hex(self.q + dq, self.r + dr)
 
     def distance(self, other: "Hex") -> int:
@@ -48,7 +48,7 @@ class Hex:
             raise ValueError("radius must be non-negative")
 
         q0, r0 = self.q, self.r
-        for dq, dr in self._directions.values():
+        for dq, dr in self._DIRECTIONS.values():
             yield Hex(q0 + dq * radius, r0 + dr * radius)
 
 
