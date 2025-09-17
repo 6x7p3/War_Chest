@@ -1,5 +1,5 @@
 # ── Python byte-code ─────────────────────────────────────────────
-__pycache__/                 # any directory named “__pycache__”
-*.py[cod]                    # .pyc, .pyo, .pyd
-*$py.class                   # Jython/IronPython old style
-.pytest_cache/               # Ignore pytest cache directory
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.pytest_cache/
