@@ -114,6 +114,22 @@ class Board:
         cell = self._map.get(hx, Cell())
         return cell.top()
 
+    def move_token(self, from_hx: Hex, to_hx: Hex) -> None:
+        """Move all token from one hex to another."""
+        self._ensure_in_bounds(from_hx)
+        self._ensure_in_bounds(to_hx)
+        # ensure source has a token
+        if self.get_token_at(from_hx) is None:
+            raise ValueError(f"No tokens at {from_hx} to move")
+        # ensure destination is empty
+        if self.get_token_at(to_hx) is not None:
+            raise ValueError(f"Destination {to_hx} is not empty")
+        # move all tokens from from_hx to to_hx
+        from_cell = self._map[from_hx]
+        to_cell = self._map[to_hx]
+        to_cell.stack.extend(from_cell.stack)
+        from_cell.stack.clear()
+
     def place(self, hx: Hex, token: "Token") -> None:
         """Place a token on top of the stack at the given hex."""
         self._ensure_in_bounds(hx)

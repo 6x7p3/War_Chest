@@ -3,80 +3,87 @@
 import pytest
 from warchest.core.board import BoardHexes, Board, Cell, Control
 from warchest.core.hex import Hex
+from warchest.core.tokens import Token
+from warchest.core.enums import TokenType, Player
+
+# Shared variables used across multiple tests
+CENTER_HEX = Hex(0, 0)
+ADJACENT_HEX = Hex(0, 1)
+OUT_OF_BOUNDS_HEX = Hex(5, 5)
+CUSTOM_LAYOUT = frozenset({CENTER_HEX, Hex(1, 1)})
 
 
 def test_board_hexes_initialization():
-    """Test that the default board hexes are initialized correctly."""
+    """Verify the default board hexes are properly initialized."""
     board_hexes = BoardHexes
     assert isinstance(board_hexes, frozenset)
-    assert len(board_hexes) > 0  # Ensure there are hexes in the board
+    assert len(board_hexes) > 0
 
     # Check if all hexes are instances of Hex
     for hex_tile in board_hexes:
         assert isinstance(hex_tile, Hex)
 
-    # Check if the center hex is included
-    assert Hex(q=0, r=0) in board_hexes
-
-    # check out of bounds hexes
-    assert Hex(q=4, r=0) not in board_hexes
+    # Check center hex inclusion and out of bounds exclusion
+    assert CENTER_HEX in board_hexes
+    assert OUT_OF_BOUNDS_HEX not in board_hexes
 
 
 def test_cell_initialization():
-    """Test that the Cell dataclass initializes correctly."""
-    cell = Cell(stack=["Token1", "Token2"], control="A")
+    """Verify Cell dataclass initializes with correct values."""
+    token1 = Token.create(TokenType.BLANK, Player.A)
+    token2 = Token.create(TokenType.BLANK, Player.A)
+    cell = Cell(stack=[token1, token2], control=Control.A)
     assert isinstance(cell, Cell)
-    assert cell.stack == ["Token1", "Token2"]
-    assert cell.control == "A"
+    assert cell.stack == [token1, token2]
+    assert cell.control == Control.A
 
 
-# ------------------------------------------------------------
-# test board initialization
-# ------------------------------------------------------------
 def test_board_initialization():
-    """Test that the Board initializes correctly with default and custom layouts."""
+    """Verify Board initializes with default layout."""
     board = Board()
     assert isinstance(board, Board)
     assert board._layout == Board.DefaultLayout
     assert isinstance(board._map, dict)
-    assert len(board._map) == 0  # Initially, the map should be empty
+    assert len(board._map) == 0
 
 
 def test_board_initialization_with_layout():
-    """Test that the Board initializes correctly with a custom layout."""
-    custom_layout = frozenset({Hex(q=0, r=0), Hex(q=1, r=1)})
-    board = Board(layout=custom_layout)
-    assert board._layout == custom_layout
+    """Verify Board initializes with custom layout."""
+    board = Board(layout=CUSTOM_LAYOUT)
+    assert board._layout == CUSTOM_LAYOUT
     assert isinstance(board._map, dict)
-    assert len(board._map) == 0  # Initially, the map should be empty
+    assert len(board._map) == 0
 
 
 def test_board_init_with_stack_and_control():
-    """Test that the Board initializes correctly with stacks and control."""
-    hx = Hex(0, 0)
-    initial = {hx: ["token1", "token2"]}
-    control = {hx: Control.A}
+    """Verify Board initializes with stacks and control."""
+    token1 = Token.create(TokenType.BLANK, Player.A)
+    token2 = Token.create(TokenType.BLANK, Player.A)
+    initial = {CENTER_HEX: [token1, token2]}
+    control = {CENTER_HEX: Control.A}
 
     board = Board(initial=initial, control=control)
 
-    assert board.control_of(hx) is Control.A
-    assert board._map[hx].stack == ["token1", "token2"]
+    assert board.control_of(CENTER_HEX) is Control.A
+    assert board._map[CENTER_HEX].stack == [token1, token2]
 
 
 def test_board_init_with_pairs_duplicate_hex():
-    """Test that the Board initializes correctly with pairs, including duplicates."""
+    """Verify Board initializes with duplicate hex pairs."""
     hx = Hex(1, -1)
-    pairs = [(hx, "tokenA"), (hx, "tokenB")]
+    tokenA = Token.create(TokenType.BLANK, Player.A)
+    tokenB = Token.create(TokenType.BLANK, Player.B)
+    pairs = [(hx, tokenA), (hx, tokenB)]
 
     board = Board(pairs=pairs)
-    assert board._map[hx].stack == ["tokenA", "tokenB"]
+    assert board._map[hx].stack == [tokenA, tokenB]
 
 
 def test_board_init_with_outbounds_hex():
-    """Test that the Board raises ValueError when initialized with out-of-bounds hexes."""
-    hx = Hex(5, 5)  # Out of bounds hex
+    """Verify ValueError is raised with out-of-bounds hexes."""
+    token = Token.create(TokenType.BLANK, Player.A)
     try:
-        _ = Board(initial={hx: ["token"]})
+        _ = Board(initial={OUT_OF_BOUNDS_HEX: [token]})
     except ValueError as e:
         assert str(e) == "off-board coordinates: [Hex(q=5, r=5)]"
     else:
@@ -84,95 +91,120 @@ def test_board_init_with_outbounds_hex():
 
 
 def test_board_init_with_outbounds_control():
-    """Test that the Board raises ValueError when initialized with out-of-bounds control."""
-    hx = Hex(5, 5)  # Out of bounds hex
+    """Verify ValueError is raised with out-of-bounds control."""
     try:
-        _ = Board(control={hx: Control.A})
+        _ = Board(control={OUT_OF_BOUNDS_HEX: Control.A})
     except ValueError as e:
         assert str(e) == "off-board coordinates: [Hex(q=5, r=5)]"
     else:
         assert False, "Expected ValueError for out-of-bounds hex, but none was raised."
 
 
-# ------------------------------------------------------------
-# test board place method
-# ------------------------------------------------------------
 def test_board_place_and_remove():
-    """Test that the Board's place and remove methods work correctly."""
+    """Verify place and remove methods work correctly."""
     board = Board()
-    hx = Hex(0, 0)
-    board.place(hx, "token1")
-    assert "token1" in board._map[hx].stack
-    board.place(hx, "token2")
-    assert "token2" in board._map[hx].stack
-    assert len(board._map[hx].stack) == 2
-    board.remove_top(hx)
-    assert "token1" in board._map[hx].stack
-    assert len(board._map[hx].stack) == 1
-    board.remove_top(hx)
-    assert len(board._map[hx].stack) == 0
+    token1 = Token.create(TokenType.BLANK, Player.A)
+    token2 = Token.create(TokenType.BLANK, Player.A)
+
+    board.place(CENTER_HEX, token1)
+    assert token1 in board._map[CENTER_HEX].stack
+
+    board.place(CENTER_HEX, token2)
+    assert token2 in board._map[CENTER_HEX].stack
+    assert len(board._map[CENTER_HEX].stack) == 2
+
+    board.remove_top(CENTER_HEX)
+    assert token1 in board._map[CENTER_HEX].stack
+    assert len(board._map[CENTER_HEX].stack) == 1
+
+    board.remove_top(CENTER_HEX)
+    assert len(board._map[CENTER_HEX].stack) == 0
 
 
-# ------------------------------------------------------------
-# test board get_token_at method
-# ------------------------------------------------------------
 def test_board_get_token_at():
-    """Test that the Board's get_token_at method works correctly."""
+    """Verify get_token_at method returns correct tokens."""
     board = Board()
-    hx = Hex(0, 0)
-    assert board.get_token_at(hx) is None  # Initially empty
+    assert board.get_token_at(CENTER_HEX) is None  # Initially empty
 
-    board.place(hx, "token1")
-    assert board.get_token_at(hx) == "token1"
+    token1 = Token.create(TokenType.BLANK, Player.A)
+    token2 = Token.create(TokenType.BLANK, Player.A)
 
-    board.place(hx, "token2")
-    assert board.get_token_at(hx) == "token2"  # Top token should be token2
+    board.place(CENTER_HEX, token1)
+    assert board.get_token_at(CENTER_HEX) == token1
+
+    board.place(CENTER_HEX, token2)
+    assert board.get_token_at(CENTER_HEX) == token2  # Top token should be token2
 
     # Test out-of-bounds hex
-    bad_hex = Hex(5, 5)
     with pytest.raises(ValueError):
-        board.get_token_at(bad_hex)
+        board.get_token_at(OUT_OF_BOUNDS_HEX)
 
 
-# ------------------------------------------------------------
-# test board control methods
-# ------------------------------------------------------------
-def test_board_control():
-    """Test that the Board's control methods work correctly."""
+def test_board_move_token():
+    """Verify move_token method correctly relocates tokens."""
     board = Board()
-    hx = Hex(0, 0)
+    token = Token.create(TokenType.BLANK, Player.A)
+
+    board.place(CENTER_HEX, token)
+    board.move_token(CENTER_HEX, ADJACENT_HEX)
+    assert board.get_token_at(ADJACENT_HEX) == token
+    assert board.get_token_at(CENTER_HEX) is None
+
+
+def test_board_move_token_stack():
+    """Verify move_token method correctly relocates entire stacks."""
+    board = Board()
+    token1 = Token.create(TokenType.BLANK, Player.A)
+    token2 = Token.create(TokenType.BLANK, Player.A)
+
+    board.place(CENTER_HEX, token1)
+    board.place(CENTER_HEX, token2)
+    board.move_token(CENTER_HEX, ADJACENT_HEX)
+
+    assert board.get_token_at(ADJACENT_HEX) == token2  # Top token should be token2
+    assert board._map[ADJACENT_HEX].stack == [token1, token2]
+    assert board.get_token_at(CENTER_HEX) is None
+
+    # Test moving from an empty hex
+    with pytest.raises(ValueError):
+        board.move_token(CENTER_HEX, Hex(0, 2))
+
+    # Test moving to a non-empty hex
+    with pytest.raises(ValueError):
+        board.move_token(ADJACENT_HEX, ADJACENT_HEX)
+
+
+def test_board_control():
+    """Verify control methods set and get control status correctly."""
+    board = Board()
 
     # Set control
-    board.set_control(hx, Control.A)
-    assert board.control_of(hx) is Control.A
+    board.set_control(CENTER_HEX, Control.A)
+    assert board.control_of(CENTER_HEX) is Control.A
 
     # Change control
-    board.set_control(hx, Control.B)
-    assert board.control_of(hx) is Control.B
+    board.set_control(CENTER_HEX, Control.B)
+    assert board.control_of(CENTER_HEX) is Control.B
 
     # Remove control
-    board.set_control(hx, Control.NEUTRAL)
-    assert board.control_of(hx) is Control.NEUTRAL
+    board.set_control(CENTER_HEX, Control.NEUTRAL)
+    assert board.control_of(CENTER_HEX) is Control.NEUTRAL
 
     # Attempt to set control on an out-of-bounds hex
-    bad_hex = Hex(5, 5)
     with pytest.raises(ValueError):
-        board.set_control(bad_hex, Control.A)
+        board.set_control(OUT_OF_BOUNDS_HEX, Control.A)
 
 
-# ------------------------------------------------------------
-# test bound control methods
-# ------------------------------------------------------------
 def test_bound_control():
-    """Test that the Board raises ValueError for out-of-bounds hexes."""
+    """Verify ValueError is raised for operations on out-of-bounds hexes."""
     board = Board()
-    bad_hex = Hex(5, 5)
+    token = Token.create(TokenType.BLANK, Player.A)
 
     with pytest.raises(ValueError):
-        board.place(bad_hex, "Oops")
+        board.place(OUT_OF_BOUNDS_HEX, token)
 
     with pytest.raises(ValueError):
-        board.remove_top(bad_hex)
+        board.remove_top(OUT_OF_BOUNDS_HEX)
 
     with pytest.raises(ValueError):
-        board.set_control(bad_hex, Control.A)
+        board.set_control(OUT_OF_BOUNDS_HEX, Control.A)
